@@ -1,13 +1,8 @@
-# Lower bounds, not pins: these are the APIs the code relies on, and any
-# later version providing them works. The reported run used PyTorch 2.14.
-torch>=2.0
-torchvision>=0.15
-numpy>=1.24
-pandas>=2.0
-pillow>=9.0
-scikit-learn>=1.2
-tqdm>=4.60
-matplotlib>=3.6
-
-# Tests only.
-pytest>=7.0
+# Installs the package in editable mode along with its runtime dependencies,
+# which are declared once in pyproject.toml so the two cannot drift apart,
+# plus the test dependencies.
+#
+# On a CPU-only machine, install torch first from PyTorch's CPU index to
+# avoid pulling the multi-gigabyte CUDA build:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+-e .[dev]

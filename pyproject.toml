@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astana-heights"
+version = "0.1.0"
+description = "Building-height regression from single satellite tiles (ConvNeXt)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+
+# Lower bounds, not pins: these are the APIs the code relies on. The reported
+# run used PyTorch 2.14.
+dependencies = [
+    "torch>=2.0",
+    "torchvision>=0.15",
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "pillow>=9.0",
+    "scikit-learn>=1.2",
+    "tqdm>=4.60",
+    "matplotlib>=3.6",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.setuptools]
+packages = ["astana_heights"]
