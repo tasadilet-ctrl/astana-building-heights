@@ -1,8 +1,10 @@
 # Astana Building Height Estimation
 
+[![CI](https://github.com/tasadilet-ctrl/astana-building-heights/actions/workflows/ci.yml/badge.svg)](https://github.com/tasadilet-ctrl/astana-building-heights/actions/workflows/ci.yml)
+
 Predicting building height (in meters) directly from a single satellite image tile, using a fine-tuned ConvNeXt-Base regression model over ~6,000 labeled locations across Astana, Kazakhstan.
 
-## Approach ([`satellite_heights.ipynb`](satellite_heights.ipynb))
+## Approach
 
 - **Backbone:** ConvNeXt-Base (ImageNet-pretrained), with a custom regression head (adaptive pool → dropout → linear → GELU → dropout → linear)
 - **Training:** backbone frozen for the first 5 epochs (head-only warmup), then unfrozen with a 10x lower LR; AdamW + cosine annealing LR schedule; Huber loss (delta=3.0); early stopping on validation MAE
@@ -32,3 +34,29 @@ Error grows with building height, as expected — tall buildings are rarer in th
 ## Data
 
 The satellite image tiles and the `Astana_satellite_metadata.csv` label file (filename → height) aren't included in this repo — the imagery was pulled from a map tile provider whose terms don't permit redistributing bulk downloaded tiles. To reproduce, you'd need your own set of geotagged satellite tiles with height labels (e.g. from municipal GIS/cadastral data) for the region of interest.
+
+## Code layout
+
+The experiment was originally a single notebook. [`satellite_heights.ipynb`](satellite_heights.ipynb) is kept as the record of the reported run — its committed output is where the numbers above come from — and the code has been extracted into a package so it can be imported, tested, and rerun without a notebook:
+
+```
+astana_heights/
+  config.py     # hyperparameters, matching the reported run
+  model.py      # ConvNeXtRegression + build_model()
+  data.py       # dataset, augmentation, metadata filtering, 90/5/5 split
+  evaluate.py   # MAE / RMSE / MAPE / R² and the per-bucket breakdown
+train.py        # CLI training entry point
+tests/          # CPU-only tests: no GPU, no dataset, no weight download
+```
+
+```bash
+pip install -r requirements.txt
+python3 train.py --data-dir /path/to/tiles --csv /path/to/metadata.csv
+pytest tests/
+```
+
+## What CI does and doesn't verify
+
+The dataset isn't redistributable and the reported result took a long GPU run, so neither can be re-checked automatically. What CI does check on every push, on CPU, is that the code is wired correctly: the model emits one scalar per image, `load_metadata` drops failed scrapes and missing files, the split really is 90/5/5 and disjoint, and — most importantly — that the metrics compute what their names claim, verified against hand-computed values, since every number in this README comes out of those functions.
+
+Those tests were themselves checked by mutation: breaking the R² denominator, changing the split ratio, and returning `(B, 1)` instead of `(B,)` from the model are each caught by a specific test. A test suite that cannot fail proves nothing.
