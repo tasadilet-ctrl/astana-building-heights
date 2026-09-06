@@ -1,0 +1,37 @@
+Device: cuda | PyTorch: 2.13.0+cu130
+Samples: 5998, Height: 2.5m - 307.1m, Median: 6.4m
+Train: 5398, Val: 300, Test: 300
+Params: 88,155,009
+  Ep   1 | Train Loss: 20.78 | Train MAE: 8.18m | Val Loss: 13.56 | Val MAE: 5.71m | LR: 0.000100
+  Ep   5 | Train Loss: 12.76 | Train MAE: 5.45m | Val Loss: 10.50 | Val MAE: 4.71m | LR: 0.000099
+[Epoch 5] Unfreezing backbone
+  Ep  10 | Train Loss: 8.91 | Train MAE: 4.12m | Val Loss: 8.02 | Val MAE: 3.81m | LR: 0.000099
+  Ep  15 | Train Loss: 7.33 | Train MAE: 3.55m | Val Loss: 6.45 | Val MAE: 3.21m | LR: 0.000096
+  Ep  20 | Train Loss: 6.19 | Train MAE: 3.13m | Val Loss: 5.96 | Val MAE: 2.99m | LR: 0.000091
+  Ep  25 | Train Loss: 5.27 | Train MAE: 2.78m | Val Loss: 5.07 | Val MAE: 2.65m | LR: 0.000084
+  Ep  30 | Train Loss: 4.84 | Train MAE: 2.61m | Val Loss: 5.25 | Val MAE: 2.70m | LR: 0.000075
+  Ep  35 | Train Loss: 4.40 | Train MAE: 2.44m | Val Loss: 4.58 | Val MAE: 2.43m | LR: 0.000066
+  Ep  40 | Train Loss: 4.13 | Train MAE: 2.34m | Val Loss: 4.75 | Val MAE: 2.47m | LR: 0.000056
+  Ep  45 | Train Loss: 3.87 | Train MAE: 2.23m | Val Loss: 4.35 | Val MAE: 2.35m | LR: 0.000045
+  Ep  50 | Train Loss: 3.52 | Train MAE: 2.10m | Val Loss: 3.94 | Val MAE: 2.18m | LR: 0.000035
+  Ep  55 | Train Loss: 3.58 | Train MAE: 2.12m | Val Loss: 3.86 | Val MAE: 2.13m | LR: 0.000026
+  Ep  60 | Train Loss: 3.29 | Train MAE: 2.01m | Val Loss: 3.66 | Val MAE: 2.08m | LR: 0.000017
+  Ep  65 | Train Loss: 3.30 | Train MAE: 2.00m | Val Loss: 3.58 | Val MAE: 2.04m | LR: 0.000010
+  Ep  70 | Train Loss: 3.24 | Train MAE: 1.98m | Val Loss: 3.59 | Val MAE: 2.04m | LR: 0.000005
+  Ep  75 | Train Loss: 3.22 | Train MAE: 1.98m | Val Loss: 3.38 | Val MAE: 1.96m | LR: 0.000002
+  Ep  80 | Train Loss: 3.05 | Train MAE: 1.91m | Val Loss: 3.44 | Val MAE: 1.98m | LR: 0.000001
+Best Validation MAE: 1.96m
+Saved /data/home/adilet_tasbolat/astana_full_run.pt
+========================================
+TEST RESULTS (300 samples)
+========================================
+  MAE:  2.855 m
+  RMSE: 7.182 m
+  MAPE: 27.5%
+  R²:   0.8346
+  MAE by height bucket:
+       0-    5m: MAE = 1.44m  (n=102)
+       5-   10m: MAE = 1.42m  (n=122)
+      10-   20m: MAE = 3.83m  (n=20)
+      20-   50m: MAE = 5.26m  (n=44)
+      50-  200m: MAE = 18.99m  (n=12)

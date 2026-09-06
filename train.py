@@ -48,6 +48,13 @@ def main():
     ap.add_argument("--seed", type=int, default=SEED)
     ap.add_argument("--num-workers", type=int, default=NUM_WORKERS)
     ap.add_argument("--out", default="best_model.pt")
+    # Stops the loop early WITHOUT changing the schedule. --epochs sets the
+    # cosine annealing period, so lowering it to shorten a run would compress
+    # the whole learning-rate decay and produce a different trajectory. To
+    # sanity-check the first N epochs against a known reference run, keep
+    # --epochs at the reference value and set --stop-after N.
+    ap.add_argument("--stop-after", type=int, default=None,
+                    metavar="N", help="stop after N epochs, leaving the LR schedule intact")
     args = ap.parse_args()
 
     set_seed(args.seed)
@@ -134,6 +141,12 @@ def main():
             if patience_counter >= PATIENCE:
                 print(f"\nEarly stopping at epoch {epoch+1}. Best Val MAE: {best_val_mae:.2f}m")
                 break
+
+        if args.stop_after is not None and (epoch + 1) >= args.stop_after:
+            print(f"\nStopping after {epoch+1} epochs as requested "
+                  f"(--epochs {args.epochs} kept the LR schedule intact). "
+                  f"Best Val MAE so far: {best_val_mae:.2f}m")
+            break
 
     print(f"\nBest Validation MAE: {best_val_mae:.2f}m")
 

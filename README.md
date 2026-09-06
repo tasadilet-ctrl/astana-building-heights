@@ -16,8 +16,10 @@ Predicting building height (in meters) directly from a single satellite image ti
 |---|---|
 | Test MAE | **2.83 m** |
 | Test RMSE | 5.93 m |
-| Test R² | 0.887 |
+| Test R² | 0.887 † |
 | Test MAPE | 29.8% |
+
+† R² and RMSE rest on the 12 test samples above 50 m and vary noticeably between runs — see [Reproduction](#reproduction). The MAE figures are the stable ones.
 
 MAE by height bucket (test set):
 
@@ -28,6 +30,30 @@ MAE by height bucket (test set):
 | 10–20 m | 3.92 m | 20 |
 | 20–50 m | 4.46 m | 44 |
 | 50–200 m | 17.56 m | 12 |
+
+## Reproduction
+
+The numbers above come from the original notebook run. To check that the extracted package (below) still reproduces them, the whole thing was retrained from scratch on a different GPU — an RTX PRO 6000 Blackwell rather than the original machine — with identical hyperparameters and split. Full log: [`benchmarks/reproduction_run.log`](benchmarks/reproduction_run.log).
+
+| Metric | Original | Reproduction | Δ |
+|---|---|---|---|
+| Best Val MAE | 1.94 m | 1.96 m | +1.0% |
+| **Test MAE** | **2.830 m** | **2.855 m** | **+0.9%** |
+| Test MAPE | 29.8% | 27.5% | better |
+| Test RMSE | 5.93 m | 7.18 m | +21% |
+| Test R² | 0.887 | 0.835 | −6% |
+
+Validation MAE tracked the original within 0.06 m from epoch 50 onward (2.18 vs 2.12 at 50, exactly 2.13 at 55, 2.08 vs 2.03 at 60). The runs aren't bit-identical — dataloader shuffling, augmentation RNG and cuDNN nondeterminism all differ, and this run used all 80 epochs where the original early-stopped at 78 — but the headline MAE lands within 1%.
+
+### Why MAE reproduces and R² doesn't
+
+MAE matched to 0.9% while RMSE moved 21% and R² dropped 6%. That gap is not instability in the model; it's a property of this test set.
+
+RMSE and R² are squared-error metrics, so they are dominated by the largest residuals — and **only 12 of the 300 test samples are buildings above 50 m**. The tall-building bucket came in at 18.99 m MAE here versus 17.56 m originally; a couple of those twelve predictions landing differently is enough to move RMSE and R² substantially while barely touching an L1 metric averaged over 300 samples.
+
+So the MAE figure is a stable, reproducible result. **The R² of 0.887 should be read as resting on a thin tail and carrying real run-to-run variance** — it is not reproducible to three digits, and quoting it that precisely would overstate what 12 samples can support. A more robust evaluation would stratify the test split to guarantee more tall buildings, or report a confidence interval over several seeds.
+
+This only became visible by actually rerunning the training rather than trusting the single recorded number.
 
 Error grows with building height, as expected — tall buildings are rarer in the training distribution and their apparent size/shadow cues are noisier at a fixed tile resolution.
 
