@@ -7,6 +7,9 @@ dataset reads what the metadata says, the split proportions are what the
 README claims, and the metrics compute what their names say -- the last of
 which matters most, because every number in the README is produced by them.
 """
+import csv
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -120,3 +123,41 @@ def test_model_forward_produces_one_scalar_per_image():
         out = model(torch.zeros(2, 3, 64, 64))
     assert out.shape == (2,)               # (B,), not (B, 1)
     assert torch.isfinite(out).all()
+
+
+# ------------------------------------------------- committed test results --
+
+def test_committed_predictions_reproduce_the_reported_metrics():
+    """The README quotes metrics computed from benchmarks/test_predictions.csv.
+    This pins them together so an edit to the metric code or the CSV cannot
+    silently invalidate the published numbers."""
+    csv_path = Path(__file__).resolve().parent.parent / "benchmarks" / "test_predictions.csv"
+    rows = list(csv.DictReader(open(csv_path)))
+    assert len(rows) == 300
+
+    preds = [float(r["predicted_height"]) for r in rows]
+    targets = [float(r["true_height"]) for r in rows]
+    m = regression_metrics(preds, targets)
+
+    assert m["mae"] == pytest.approx(2.855, abs=5e-3)
+    assert m["rmse"] == pytest.approx(7.182, abs=5e-3)
+    assert m["r2"] == pytest.approx(0.8346, abs=5e-4)
+
+
+def test_r2_is_insensitive_to_removing_the_tall_tail():
+    """Guards the corrected claim in the README: R² is a ratio, so dropping
+    the 12 buildings above 50 m shrinks SS_res and SS_tot together and leaves
+    R² essentially unchanged -- while the absolute-error metrics fall a lot."""
+    csv_path = Path(__file__).resolve().parent.parent / "benchmarks" / "test_predictions.csv"
+    rows = list(csv.DictReader(open(csv_path)))
+    preds = np.array([float(r["predicted_height"]) for r in rows])
+    targets = np.array([float(r["true_height"]) for r in rows])
+
+    short = targets < 50.0
+    assert (~short).sum() == 12                    # the tail really is 12 samples
+
+    full = regression_metrics(preds, targets)
+    trimmed = regression_metrics(preds[short], targets[short])
+
+    assert trimmed["r2"] == pytest.approx(full["r2"], abs=0.01)   # ratio: invariant
+    assert trimmed["mae"] < 0.85 * full["mae"]                    # absolute: drops hard

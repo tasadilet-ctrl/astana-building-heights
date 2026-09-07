@@ -1,0 +1,53 @@
+{
+  "n_samples": 300,
+  "n_tall": 12,
+  "resamples": 2000,
+  "metrics": {
+    "mae": {
+      "point": 2.8545887700000003,
+      "ci_low": 2.1908897701666668,
+      "ci_high": 3.684982825249999,
+      "relative_width": 0.5234004529077343,
+      "unit": "m",
+      "drop_one_max_delta": 0.23658961280936452,
+      "drop_one_relative": 0.08288045384882688,
+      "drop_one_height_m": 125.992279
+    },
+    "rmse": {
+      "point": 7.181669050416644,
+      "ci_low": 4.242878664159792,
+      "ci_high": 10.092348137901515,
+      "relative_width": 0.8145000044804859,
+      "unit": "m",
+      "drop_one_max_delta": 1.382146436822893,
+      "drop_one_relative": 0.19245476603279402,
+      "drop_one_height_m": 125.992279
+    },
+    "mape": {
+      "point": 27.52155957482935,
+      "ci_low": 22.06837334962818,
+      "ci_high": 34.735120511279774,
+      "relative_width": 0.4602481602545641,
+      "unit": "%",
+      "drop_one_max_delta": 2.3932007802178568,
+      "drop_one_relative": 0.08695730973060949,
+      "drop_one_height_m": 3.271301
+    },
+    "r2": {
+      "point": 0.8345757330379198,
+      "ci_low": 0.7275505354563672,
+      "ci_high": 0.9327375679861962,
+      "relative_width": 0.2458578945051907,
+      "unit": null,
+      "drop_one_max_delta": 0.040873563484820075,
+      "drop_one_relative": 0.04897525996357115,
+      "drop_one_height_m": 125.992279
+    }
+  },
+  "excluding_tall": {
+    "mae": 2.1821398854166665,
+    "rmse": 4.33121701539446,
+    "mape": 27.758068279833793,
+    "r2": 0.8356628807988585
+  }
+}

@@ -39,3 +39,8 @@ jobs:
 
       - name: Check the training script's interface is intact
         run: python train.py --help
+
+      # Recomputes the confidence intervals quoted in the README from the
+      # committed predictions. Needs no GPU, checkpoint or dataset.
+      - name: Reproduce the uncertainty analysis
+        run: python scripts/evaluate_uncertainty.py --resamples 2000
