@@ -37,6 +37,9 @@ def main():
     ap.add_argument("--csv", required=True)
     ap.add_argument("--checkpoint", required=True)
     ap.add_argument("--seed", type=int, default=SEED)
+    # Must match the split seed used at training time, or this would export
+    # predictions on samples the model was trained on.
+    ap.add_argument("--split-seed", type=int, default=None)
     ap.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     ap.add_argument("--num-workers", type=int, default=NUM_WORKERS)
     ap.add_argument("--out", default=str(ROOT / "benchmarks" / "test_predictions.csv"))
@@ -46,7 +49,8 @@ def main():
     df = load_metadata(args.csv, args.data_dir)
     # Same seed as training, so this is the same held-out split the model
     # never saw -- not a fresh random split.
-    _, _, test_df = make_splits(df, args.seed)
+    split_seed = args.split_seed if args.split_seed is not None else args.seed
+    _, _, test_df = make_splits(df, split_seed)
     print(f"Test samples: {len(test_df)}")
 
     _, eval_tf = build_transforms()

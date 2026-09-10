@@ -45,7 +45,15 @@ def main():
     ap.add_argument("--epochs", type=int, default=EPOCHS)
     ap.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     ap.add_argument("--lr", type=float, default=LR)
-    ap.add_argument("--seed", type=int, default=SEED)
+    ap.add_argument("--seed", type=int, default=SEED,
+                    help="training RNG: init, shuffling, augmentation")
+    # The split is seeded SEPARATELY so training variance can be measured
+    # without also changing which buildings are in the test set. Varying
+    # --seed alone with --split-seed fixed isolates run-to-run variance;
+    # varying --split-seed changes the held-out sample instead. Defaults to
+    # --seed, so existing invocations behave exactly as before.
+    ap.add_argument("--split-seed", type=int, default=None,
+                    help="seed for the train/val/test split (default: --seed)")
     ap.add_argument("--num-workers", type=int, default=NUM_WORKERS)
     ap.add_argument("--out", default="best_model.pt")
     # Stops the loop early WITHOUT changing the schedule. --epochs sets the
@@ -57,6 +65,7 @@ def main():
                     metavar="N", help="stop after N epochs, leaving the LR schedule intact")
     args = ap.parse_args()
 
+    split_seed = args.split_seed if args.split_seed is not None else args.seed
     set_seed(args.seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Device: {device} | PyTorch: {torch.__version__}")
@@ -64,8 +73,9 @@ def main():
     df = load_metadata(args.csv, args.data_dir)
     print(f"Samples: {len(df)}, Height: {df['height'].min():.1f}m - "
           f"{df['height'].max():.1f}m, Median: {df['height'].median():.1f}m")
-    train_df, val_df, test_df = make_splits(df, args.seed)
-    print(f"Train: {len(train_df)}, Val: {len(val_df)}, Test: {len(test_df)}")
+    train_df, val_df, test_df = make_splits(df, split_seed)
+    print(f"Train: {len(train_df)}, Val: {len(val_df)}, Test: {len(test_df)} "
+          f"(split seed {split_seed}, training seed {args.seed})")
 
     train_tf, eval_tf = build_transforms()
     mk = lambda d, tf, sh: DataLoader(
