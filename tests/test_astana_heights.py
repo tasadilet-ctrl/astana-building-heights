@@ -161,3 +161,55 @@ def test_r2_is_insensitive_to_removing_the_tall_tail():
 
     assert trimmed["r2"] == pytest.approx(full["r2"], abs=0.01)   # ratio: invariant
     assert trimmed["mae"] < 0.85 * full["mae"]                    # absolute: drops hard
+
+
+# ------------------------------------------------------ seed decomposition --
+
+def _seed_pred_files():
+    d = Path(__file__).resolve().parent.parent / "benchmarks" / "seed_predictions"
+    return sorted(d.glob("*.csv"))
+
+
+def test_every_seed_run_shares_one_test_split():
+    """The training-vs-sampling variance decomposition is only valid if all
+    runs were scored on the SAME buildings. If a run were trained with a
+    different --split-seed, its spread would silently mix test-set variance
+    into what is reported as training variance."""
+    files = _seed_pred_files()
+    assert len(files) >= 2, "expected multiple seed runs"
+
+    reference = None
+    for f in files:
+        rows = list(csv.DictReader(open(f)))
+        key = [(r["filename"], r["true_height"]) for r in rows]
+        if reference is None:
+            reference = key
+        else:
+            assert key == reference, f"{f.name} was scored on a different split"
+
+
+def test_training_variance_is_smaller_than_test_set_sampling_variance():
+    """Headline conclusion of the decomposition: which buildings landed in the
+    test split moves the metrics more than which seed was trained."""
+    files = _seed_pred_files()
+    maes = []
+    for f in files:
+        rows = list(csv.DictReader(open(f)))
+        p = [float(r["predicted_height"]) for r in rows]
+        t = [float(r["true_height"]) for r in rows]
+        maes.append(regression_metrics(p, t)["mae"])
+
+    seed_sd = float(np.std(maes, ddof=1))
+
+    # Bootstrap one run for the sampling-variance scale.
+    rows = list(csv.DictReader(open(files[0])))
+    p = np.array([float(r["predicted_height"]) for r in rows])
+    t = np.array([float(r["true_height"]) for r in rows])
+    rng = np.random.default_rng(0)
+    draws = [regression_metrics(p[i], t[i])["mae"]
+             for i in (rng.integers(0, len(t), size=len(t)) for _ in range(300))]
+    boot_sd = float(np.std(draws, ddof=1))
+
+    assert boot_sd > 2 * seed_sd, (
+        f"expected sampling sd ({boot_sd:.3f}) to dominate training sd "
+        f"({seed_sd:.3f})")

@@ -44,3 +44,8 @@ jobs:
       # committed predictions. Needs no GPU, checkpoint or dataset.
       - name: Reproduce the uncertainty analysis
         run: python scripts/evaluate_uncertainty.py --resamples 2000
+
+      # Recomputes the 5-seed training-vs-sampling variance decomposition and
+      # the prediction intervals quoted in the README. Also CPU-only.
+      - name: Reproduce the seed-variance decomposition
+        run: python scripts/seed_variance.py --resamples 2000
